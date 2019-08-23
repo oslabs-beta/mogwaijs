@@ -20,11 +20,13 @@ VertexModel.prototype.create = function create(props) {
   const created = Object.assign({}, props);
   Object.keys(props).forEach(prop => {
     created[prop] = created[prop][props[prop]];
-    if (typeof props[prop] !== 'string'){
-    gremlinString += `.property('${prop}', ${props[prop]})`;
-    } else {
-    gremlinString += `.property('${prop}', '${props[prop]}')`;
-    }
+    if(typeof prop === 'object'){
+      if (typeof props[prop] !== 'string'){
+      gremlinString += `.property('${prop}', ${props[prop]})`;
+      } else {
+      gremlinString += `.property('${prop}', '${props[prop]}')`;
+      }
+    } 
   })
   return gremlinString;
 }
