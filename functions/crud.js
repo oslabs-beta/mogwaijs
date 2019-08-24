@@ -3,69 +3,57 @@
  * @param {Object} schema - an object containing property names as keys; values are the constructor for the type of data contained at this key
  * 
  * TODO: all of our values will currently get stringified when they are passed into .property(); we need to determine if boolean values are accepted/passed as strings
+ * [ x ] Eric Stallings, 8/23
  * 
  * TODO: validate inputs to Model and create (for example, if a property is passed into create that IS NOT a property on the model, we shouldn't add that property to our object)
+ * [ x ] Eric Stallings, 8/23
  */
-function vertexModel(label, schema = {}) {
+function VertexModel(label, schema = {}) {
   this.label = label;
   Object.entries(schema).forEach((keyValuePair) => {
-    // console.log(`Line 13, schema is: ${schema}`)
-    // console.log(`Line 14, keyValuePair is ${keyValuePair}`)
     this[keyValuePair[0]] = keyValuePair[1];
   });
 }
-vertexModel.prototype.create = function create(props) {
-  
+
+VertexModel.prototype.create = function create(props) {
   let gremlinString = `g.addV('${this.label}')`;
-  
   const created = Object.assign({}, props);
-  
   Object.keys(props).forEach(prop => {
-    // console.log(this)
-    // console.log(this[prop])
     created[prop] = created[prop][props[prop]];
-    gremlinString += `.property('${prop}', '${props[prop]}')`;
+    if(typeof prop === 'object'){
+      if (typeof props[prop] !== 'string'){
+      gremlinString += `.property('${prop}', ${props[prop]})`;
+      } else {
+      gremlinString += `.property('${prop}', '${props[prop]}')`;
+      }
+    } 
   })
-// return created, gremlinString;
-  // console.log(gremlinString);
   return gremlinString;
 }
-// const InfinityStone = new Model('Infinity Stone', {color: String, category: String})
-const User = new vertexModel('User', {name: String, age: Number});
-const Company = new vertexModel('Company', {name: String, city: String, field: String});
-// console.log(`Line 32: User is: ${JSON.stringify(User)}`);
-// console.log(`Line 33: Company is: ${JSON.stringify(Company)}`);
-const sam = User.create(
-  {
-    name: 'Sam', 
-    age: 30,
-  });
-const tanner = User.create({
-  name:'Tanner',
-  age: 23,
-});
-const netflix = Company.create({
-  name: 'Netflix',
-  city: 'Los Angeles',
-  field: 'Entertainment'
-})
-const hulu = Company.create({
-  name: 'Hulu',
-  city: 'Santa Monica',
-  field: 'Entertainment'
-})
-// const red = InfinityStone.create({
-//   color: 'red',
-//   category: 'Reality'
-// })
-// console.log('The first time, User is: ', User)
-console.log('Sam is:', sam);
-console.log(User)
-// console.log(`Second time, User is:`, User);
-console.log(`Tanner is: `, tanner)
-console.log(User)
-console.log(`netflix is: `, netflix);
-console.log(Company)
-console.log(`hulu is: `, hulu);
-console.log(Company)
-// console.log(`red is ${red}`)
+
+function findVertexByProps(props) {
+  let findVertexGremlinString = `g.V()`;
+  Object.entries(props).forEach(prop => {
+  
+    findVertexGremlinString += `.has('${prop[0]}', ${prop[1]})`
+    console.log(typeof prop[1]);
+  })
+  return findVertexGremlinString;
+}
+
+function addProps(node, props) {
+  let str1;
+  node = Object.entries(node);
+  node = node.reduce((outputNode, currentSubArray) => {
+    outputNode[currentSubArray[0]] = currentSubArray[1];
+    return outputNode;
+  }, {})
+  str1 = findVertexByProps(node)
+  console.log(`props on 44`, props)
+  Object.entries(props).forEach(prop=>{
+    console.log(prop[0], 'is a ', (typeof prop[0]));
+    console.log(prop[1], 'is a ', (typeof prop[1]));
+    str1 += `.property('${prop[0]}', ${prop[1]})`
+  })
+  return str1;
+}
