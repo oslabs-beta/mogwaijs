@@ -53,25 +53,13 @@ function EdgeModel(label, schema = {}) {
 }
 
 /**
- * @param {Object} firstNode -"the name of the first node in the relationship which points to the second node"
+  * @param {Object} firstNode -"the name of the first node in the relationship which points to the second node"
  * @param {Object} secondNode-"the name of the second node in the relationship; this node is pointed to"
  * @param {Object} props-"an object containing property names as keys; values are the constructor for the type of data contained at this key"
  */
 EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
-  let resultString;
 
-  let initialString = 'g.V()';
-  let middleString = `.addE('${this.label})`;
-  let endingString = 'g.V()';
-
-  //firstNode -- [relationship; props] --> secondNode
-  Object.entries(fromNode).forEach(keyValuePair => {
-   initialString += `.hasProperty('${keyValuePair[0]}', '${keyValuePair[1]}')`});
-
-  Object.entries(toNode).forEach(keyValuePair => {
-    endingString += `.hasProperty('${keyValuePair[0]}', '${keyValuePair[1]}')`});
-     
-  resultString = initialString + middleString+ endingString;
-  return resultString;
-   
+  const qString = `g.V(from).addE('${this.label}').to(g.V(to))`;
+  
+  return client.submit(qString, {from: fromNode, to: toNode})
   };
