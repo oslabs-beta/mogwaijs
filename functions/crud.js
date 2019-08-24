@@ -30,3 +30,30 @@ VertexModel.prototype.create = function create(props) {
   })
   return gremlinString;
 }
+
+function findVertexByProps(props) {
+  let findVertexGremlinString = `g.V()`;
+  Object.entries(props).forEach(prop => {
+  
+    findVertexGremlinString += `.has('${prop[0]}', ${prop[1]})`
+    console.log(typeof prop[1]);
+  })
+  return findVertexGremlinString;
+}
+
+function addProps(node, props) {
+  let str1;
+  node = Object.entries(node);
+  node = node.reduce((outputNode, currentSubArray) => {
+    outputNode[currentSubArray[0]] = currentSubArray[1];
+    return outputNode;
+  }, {})
+  str1 = findVertexByProps(node)
+  console.log(`props on 44`, props)
+  Object.entries(props).forEach(prop=>{
+    console.log(prop[0], 'is a ', (typeof prop[0]));
+    console.log(prop[1], 'is a ', (typeof prop[1]));
+    str1 += `.property('${prop[0]}', ${prop[1]})`
+  })
+  return str1;
+}
