@@ -1,6 +1,7 @@
 "use strict";
 
 const Gremlin = require('gremlin');
+
 const config = require("./config");
 const cohort = require('./cohortMembers');
 const groups = require('./seniorGroups');
