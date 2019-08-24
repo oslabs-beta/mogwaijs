@@ -30,3 +30,23 @@ VertexModel.prototype.create = function create(props) {
   })
   return gremlinString;
 }
+
+const User = new Model('User', {name: String, age: Number});
+
+
+/** 
+ * @param {Object\|String} [props] - An object containing properties to match. 
+ * If no properties are given, will match all nodes of this Model.
+ *
+ */
+Model.prototype.match = function match(props) {
+  let qString = `g.V('${this.label}')`;
+  if (props) {
+    Object.entries(props).forEach((keyValuePair) => {
+      if (typeof keyValuePair[1] !== 'number'){
+        qString += `.has('${keyValuePair[0]}', '${keyValuePair[1]}')`;
+        // assuming the value is a number, just pass it in
+      } else qString += `.has('${keyValuePair[0]}', ${keyValuePair[1]})`;
+    })
+  }
+}
