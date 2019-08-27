@@ -104,23 +104,51 @@ VertexModel.prototype.dropVertex = function dropVertex(node){
 }
 
 /** 
- * @param {Object\|String} [srcProps] - An object containing properties of the source vertices
  * @param {Object\|String} relprops - A string containing the name of the relationship or an 
- * object containing a property label for the Vertex label and other properties of the relationship
- * @param {Object\|String} [targetProps] - An object containing properties of the target vertices
+ * object containing a key 'label' containing the name of the relationship and other properties
+ * of the relationship
+ * @param {Object} [targetProps] - An object containing properties of the target vertices
+ * for matching
  *
  */
-VertexModel.prototype.match = function match(props) {
-  let qString = `g.V('${this.label}')`;
-  if (props) {
-    Object.entries(props).forEach((keyValuePair) => {
-      if (typeof keyValuePair[1] !== 'number'){
-        qString += `.has('${keyValuePair[0]}', '${keyValuePair[1]}')`;
-        // assuming the value is a number, just pass it in
-      } else qString += `.has('${keyValuePair[0]}', ${keyValuePair[1]})`;
-    })
+VertexModel.prototype.match = function match(relProps = '', targetProps = {}) {
+  let qString = `g.V().match(__.as('source')`;
+  let qObj = {};
+  // validate the relationship argument
+  if (relProps === '') throw new Error('Relationship label cannot be undefined');
+  if (typeof relProps === 'string') {
+    qObj.label = relProps;
+    qString += `.out(label).as('target')`;
+    // full string so far would be 'g.V().match(__.as('source').out(label).as('target')'
+  } else if (typeof relProps === 'object' && !Array.isArray(relProps)) {
+    // if the edge has properties, then we select edges on those properties
+    qObj = {...qObj, ...relProps}
+    qString += `.outE(label)`
+    Object.keys(relProps).forEach((key) => {
+      if (key !== 'label') {
+        qString += `.has('${key}', ${key})`;
+      }
+    });
+    qString += `.inV().as('target)'`;
+    // g.V().match(__.as('source).outE(label).has('prop', prop).inV().as('target')
+  } else throw new Error('First argument must be string or object');
+
+  // validate the target props object
+  if (Object.keys(targetProps).length > 0) {
+    qObj = {...qObj, ...targetProps}
+    qString += `, __.as('target')`
+    Object.keys(targetProps).forEach((key) => {
+      if (key !== 'label') {
+        qString += `.has('${key}', ${key})`;
+      }
+    });
+    // ', __.as('target').has('prop', prop)'
   }
+  qString += `).select('source', 'target')`;
+
+  return qString;
 }
+
 
 module.exports = VertexModel;
   
