@@ -5,6 +5,10 @@
   "main": "app.js",
   "dependencies": {
     "async": "^2.6.0",
-    "gremlin": "^3.3.4"
+    "gremlin": "^3.3.4",
+    "mocha": "^6.2.0"
+  },
+  "scripts": {
+    "test": "mocha"
   }
 }
