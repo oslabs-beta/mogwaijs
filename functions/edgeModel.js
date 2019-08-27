@@ -66,7 +66,7 @@ EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, p
     })
   }
   else {
-    qString = `g.V(from).outE(edgeLabel).out().as('a').select('a')`
+    qString = `g.V(from).outE(edgeLabel).as('a').inV(to).select('a')`
 
     const created = Object.assign({}, props);
     Object.keys(props).forEach((prop) => {
@@ -79,5 +79,7 @@ EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, p
 
   return client.submit(qString, {from: fromNode, to: toNode, ...props, edgeLabel: edgeLabel})
 }
+
+
 
 module.exports = EdgeModel;
