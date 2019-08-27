@@ -1,5 +1,4 @@
-/**
- * 
+/** Edge Model
  * @param {String} label - "the edge type: required;" 
  * @param {Object} schema - "an object containing property names as keys; values are the constructor for the type of data contained at this key"
  */
@@ -13,11 +12,13 @@ function EdgeModel(label, schema = {}) {
   })
 }
 
-/**
-  * @param {Object} firstNode -"the name of the first node in the relationship which points to the second node"
- * @param {Object} secondNode-"the name of the second node in the relationship; this node is pointed to"
- * @param {Object} props-"an object containing property names as keys; values are the constructor for the type of data contained at this key"
+/** Create Edge
+ * @param {Object} fromNode - the name of the source node in the relationship which points to the target node
+ * @param {Object} toNode - the name of the target node in the relationship; this node is pointed to
+ * @param {Object} props - an object containing property names as keys; values are the constructor for the type of data contained at this key
+ * @return {Object} promise - the object returned from the client.submit method. 
  */
+
 EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
 
   const typeObj = {
@@ -29,10 +30,8 @@ EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
 
   const qString = `g.V(from).addE('${this.label}').to(g.V(to))`;
 
-  const created = Object.assign({}, props);
-  Object.keys(props).forEach((prop) => {
-    created[prop] = created[prop][props[prop]];
 
+  Object.keys(props).forEach((prop) => {
     qString += `.property('${prop}', ${prop})`
   })
 
@@ -41,16 +40,20 @@ EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
   }
   
   return client.submit(qString, {from: fromNode, to: toNode, ...props})
-  };
+};
 
-/** 
- * @param {Object} fromNode
- * @param {Object} toNode
- * @param {Object} props
- * @param {String} edgeLabel
+/** Add Props To Edge
+ * @param {String} fromNode - the name of the source node in the relationship which points to the target node
+ * @param {String} toNode - the name of the target node in the relationship; this node is pointed to
+ * @param {Object} props - an object containing property names as keys; values are the constructor for the type of data contained at this key 
+ * @return {Object} promise - the object returned from the client.submit method. 
  */
 
-EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, props, err, callback, edgeLabel) {
+EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, props) {
+  if (typeof fromNode !== 'string') throw new Error (`Error: fromNode must be a string!`);
+  if (typeof toNode !== 'string') throw new Error (`Error: toNode must be a string!`);
+  if (typeof props !== 'object') throw new Error (`Error: props must be an object!`);
+
   let qString = ``;
   const typeObj = {
     'string' : String,
@@ -64,29 +67,23 @@ EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, p
   }
 
   if(!(fromNode && toNode)){
-    qString += `g.E(edgeLabel)`;
-    const created = Object.assign({}, props);
+    qString += `g.E('${this.label}')`;
     Object.keys(props).forEach((prop) => {
-      created[prop] = created[prop][props[prop]];
-
       qString += `.property('${prop}', ${prop})`
     })
   }
   else {
-    qString = `g.V(from).outE(edgeLabel).as('a').inV(to).select('a')`
-
-    const created = Object.assign({}, props);
+    qString = `g.V(from).outE('${this.label}').as('a').inV(to).select('a')` 
     Object.keys(props).forEach((prop) => {
-      created[prop] = created[prop][props[prop]];
-
       qString += `.property('${prop}', ${prop})`
     })
   }
 
 
-  return client.submit(qString, {from: fromNode, to: toNode, ...props, edgeLabel: edgeLabel})
+  return client.submit(qString, {from: fromNode, to: toNode, ...props})
 }
 
 
 
 module.exports = EdgeModel;
+
