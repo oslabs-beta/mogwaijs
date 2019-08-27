@@ -57,3 +57,5 @@ function addProps(node, props) {
   })
   return str1;
 }
+
+module.exports = VertexModel;
