@@ -43,6 +43,13 @@ EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
   return client.submit(qString, {from: fromNode, to: toNode, ...props})
   };
 
+/** 
+ * @param {Object} fromNode
+ * @param {Object} toNode
+ * @param {Object} props
+ * @param {String} edgeLabel
+ */
+
 EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, props, err, callback, edgeLabel) {
   let qString = ``;
   const typeObj = {
