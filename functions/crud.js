@@ -35,11 +35,13 @@ const User = new Model('User', {name: String, age: Number});
 
 
 /** 
- * @param {Object\|String} [props] - An object containing properties to match. 
- * If no properties are given, will match all nodes of this Model.
+ * @param {Object\|String} [srcProps] - An object containing properties of the source vertices
+ * @param {Object\|String} relprops - A string containing the name of the relationship or an 
+ * object containing a property label for the Vertex label and other properties of the relationship
+ * @param {Object\|String} [targetProps] - An object containing properties of the target vertices
  *
  */
-Model.prototype.match = function match(props) {
+VertexModel.prototype.match = function match(props) {
   let qString = `g.V('${this.label}')`;
   if (props) {
     Object.entries(props).forEach((keyValuePair) => {
