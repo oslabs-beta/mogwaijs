@@ -120,7 +120,7 @@ VertexModel.prototype.findVertexByProps = function findVertexByProps(props) {
 VertexModel.prototype.deleteVertex = function deleteVertex(node){
   let gremlinString = findVertex(node);
 
-  return client.submit(`g.removeVertex(${gremlinString})`);
+  return client.submit(`(${gremlinString}).remove()`);
 
 }
 
