@@ -31,6 +31,12 @@ VertexModel.prototype.create = function create(props) {
   return gremlinString;
 }
 
+// VertexModel.prototype.delete = function delete(props) {
+//   const qString = `g.V().has().drop()`;
+
+//   return client.submit(qString, {})
+// }
+
 function findVertexByProps(props) {
   let findVertexGremlinString = `g.V()`;
   Object.entries(props).forEach(prop => {
@@ -69,6 +75,8 @@ EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
   
   return client.submit(qString, {from: fromNode, to: toNode})
   };
+
+ 
 function addProps(node, props) {
   let str1;
   node = Object.entries(node);
