@@ -15,23 +15,45 @@ function VertexModel(label, schema = {}) {
   });
 }
 
-VertexModel.prototype.create = function create(props) {
-  let gremlinString = `g.addV('${this.label}')`;
-  const created = Object.assign({}, props);
-  Object.keys(props).forEach(prop => {
-    created[prop] = created[prop][props[prop]];
-    if(typeof prop === 'object'){
-      if (typeof props[prop] !== 'string'){
-      gremlinString += `.property('${prop}', ${props[prop]})`;
-      } else {
-      gremlinString += `.property('${prop}', '${props[prop]}')`;
-      }
-    } 
-  })
-  return gremlinString;
-}
+// VertexModel.prototype.create = function create(props) {
+//   let gremlinString = `g.addV('${this.label}')`;
+//   // let variablesArray = [];
 
-const User = new Model('User', {name: String, age: Number});
+//   const created = Object.assign({}, props);
+
+//   Object.keys(props).forEach(prop => {
+
+//     created[prop] = created[prop][props[prop]];
+//     if(typeof prop === 'object'){
+
+//       if (typeof props[prop] !== 'string'){
+//       gremlinString += `.property('${prop}', ${props[prop]})`;
+//       } else {
+//       gremlinString += `.property('${prop}', '${props[prop]}')`;
+//       }
+//     }
+
+//   })
+//   return gremlinString;
+// }
+
+// REFACTORED create METHOD
+VertexModel.prototype.create = function create(schema = {}) {
+  
+  let gremlinString = `g.addV('${this.label}')`;
+  const propsObject = Object.assign(schema, {});
+  
+  for (key in propsObject){
+    gremlinString += `.property('key', key)`
+  }
+
+
+  console.log(gremlinString, propsObject);
+
+  
+ return propsObject;
+  // return client.submit(gremlinString, variablesObject)
+}
 
 
 /** 
@@ -56,17 +78,34 @@ Model.prototype.match = function match(props) {
 //   return client.submit(qString, {})
 // }
 
+// function findVertexByProps(props) {
+//   let findVertexGremlinString = `g.V()`;
+//   Object.entries(props).forEach(prop => {
+  
+//     findVertexGremlinString += `.has('${prop[0]}', ${prop[1]})`
+//     console.log(typeof prop[1]);
+//   })
+//   return findVertexGremlinString;
+// }
+
+//REFACTORED fVBP method
 function findVertexByProps(props) {
   let findVertexGremlinString = `g.V()`;
-  Object.entries(props).forEach(prop => {
-  
-    findVertexGremlinString += `.has('${prop[0]}', ${prop[1]})`
-    console.log(typeof prop[1]);
-  })
+  const propsObj = Object.assign(props, {});
+
+ for (key in propsObj){
+   findVertexGremlinString += `.has('key', key)`
+ }
+
+  // return client.submit(findVertexGremlinString, propsObj)
+  // console.log(findVertexGremlinString)
   return findVertexGremlinString;
 }
 
-console.log(sam);
+// function findVertexByNode(node){
+//   let 
+// }
+
 
 /**
  * 
@@ -95,22 +134,78 @@ EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
   return client.submit(qString, {from: fromNode, to: toNode})
   };
 
- 
-function addProps(node, props) {
-  let str1;
-  node = Object.entries(node);
-  node = node.reduce((outputNode, currentSubArray) => {
-    outputNode[currentSubArray[0]] = currentSubArray[1];
-    return outputNode;
-  }, {})
-  str1 = findVertexByProps(node)
-  console.log(`props on 44`, props)
-  Object.entries(props).forEach(prop=>{
-    console.log(prop[0], 'is a ', (typeof prop[0]));
-    console.log(prop[1], 'is a ', (typeof prop[1]));
-    str1 += `.property('${prop[0]}', ${prop[1]})`
-  })
-  return str1;
+
+
+// VertexModel.addprops = function addProps(node, props) {
+//   let addPropsToAllVerticesString;
+
+//   let funcObj = {
+//     'string' : String,
+//     'number' : Number,
+//     'object' : Object,
+//     'array' : Array,
+//     'boolean' : Boolean,
+//     'undefined' : undefined,
+//   };
+
+//   let propArray = Object.entries(props);
+//     for (let i = 0; i < propArray.length; i++){
+      
+//       if (!this.schema[propArray[i]]){
+//         this.schema[propArray[i]] = funcObj[typeof propArray[i]];
+//       }
+//   }
+
+  
+//   let str1;
+//   node = Object.entries(node);
+//   node = node.reduce((outputNode, currentSubArray) => {
+//     outputNode[currentSubArray[0]] = currentSubArray[1];
+//     return outputNode;
+//   }, {})
+//   str1 = findVertexByProps(node)
+//   // console.log(`props on 44`, props)
+//   Object.entries(props).forEach(prop=>{
+//     // console.log(prop[0], 'is a ', (typeof prop[0]));
+//     // console.log(prop[1], 'is a ', (typeof prop[1]));
+//     str1 += `.property('prop', prop)`
+//   })
+//   return client.submit(str1, props);
+// }
+
+
+// --> Add Props to Vertex/Vertex Schema method
+VertexModel.prototype.findVAndAddProps = function findVAndAddProps(node, props) {
+
+  let gremlinString = findVertexByProps(node);
+    //Declare typeof Object to match SCHEMA property values to their type
+  const funcObj = {
+    'string' : String,
+    'number' : Number,
+    'boolean' : Boolean,
+    'undefined' : undefined,
+  };
+      //Assigns a new property to this.schema for every prop passed into the Prop Arg. 
+  let propArray = Object.entries(props);
+    for (let i = 0; i < propArray.length; i++){
+      //if the Schema for that node DOES NOT have that property attached to it, then alter the schema to include that property as well. 
+      if (!this[propArray[i][0]]){
+        this[propArray[i][0]] = funcObj[typeof propArray[i][0]];
+      }
+  }
+  // Adds a new line to the gremlinString for every prop in props object. 
+  // The gremlin string will then be filled with the props when returning client.submit? I think? 
+   for (key in props){
+    gremlinString += `.property('${key}', ${props[key]})`
+   }
+  
+  // return client.submit(gremlinString, props);
+console.log(gremlinString);
 }
 
-module.exports = VertexModel;
+const User = new VertexModel('User', {name: String, age: Number});
+const eric = User.create({'eric': 'Eric', 'age' : 30})
+
+console.log(eric);
+User.findVAndAddProps(eric, {'city' : 'Chicago', 'occupation' : 'engineer'});
+console.log(eric)
