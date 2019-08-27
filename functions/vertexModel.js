@@ -71,23 +71,6 @@ console.log(gremlinString);
 }
 
 
-/** 
- * @param {Object\|String} [props] - An object containing properties to match. 
- * If no properties are given, will match all nodes of this Model.
- *
- */
-// Model.prototype.match = function match(props) {
-//   let qString = `g.V('${this.label}')`;
-//   if (props) {
-//     Object.entries(props).forEach((keyValuePair) => {
-//       if (typeof keyValuePair[1] !== 'number'){
-//         qString += `.has('${keyValuePair[0]}', '${keyValuePair[1]}')`;
-//         // assuming the value is a number, just pass it in
-//       } else qString += `.has('${keyValuePair[0]}', ${keyValuePair[1]})`;
-//     })
-//   }
-// }
-
 // function findVertexByProps(props) {
 //   let findVertexGremlinString = `g.V()`;
 //   Object.entries(props).forEach(prop => {
@@ -119,4 +102,25 @@ VertexModel.prototype.dropVertex = function dropVertex(node){
     gremlinString += ``
   })
 }
+
+/** 
+ * @param {Object\|String} [srcProps] - An object containing properties of the source vertices
+ * @param {Object\|String} relprops - A string containing the name of the relationship or an 
+ * object containing a property label for the Vertex label and other properties of the relationship
+ * @param {Object\|String} [targetProps] - An object containing properties of the target vertices
+ *
+ */
+VertexModel.prototype.match = function match(props) {
+  let qString = `g.V('${this.label}')`;
+  if (props) {
+    Object.entries(props).forEach((keyValuePair) => {
+      if (typeof keyValuePair[1] !== 'number'){
+        qString += `.has('${keyValuePair[0]}', '${keyValuePair[1]}')`;
+        // assuming the value is a number, just pass it in
+      } else qString += `.has('${keyValuePair[0]}', ${keyValuePair[1]})`;
+    })
+  }
+}
+
+module.exports = VertexModel;
   
