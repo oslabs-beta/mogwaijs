@@ -1,13 +1,8 @@
-/** 
+/**  Vertex Model
  * @param {String} label - the vertex 'type'; required;
- * @param {Object} schema - an object containing property names as keys; values are the constructor for the type of data contained at this key
- * 
- * TODO: all of our values will currently get stringified when they are passed into .property(); we need to determine if boolean values are accepted/passed as strings
- * [ x ] Eric Stallings, 8/23
- * 
- */
+ * @param {Object} schema - an object containing property names as keys; values are the constructor for the type of data contained at this key 
+*/
 
- // --> Model for all VertexModel instances
 function VertexModel(label, schema = {}) {
     this.label = label;
     Object.entries(schema).forEach((keyValuePair) => {
@@ -15,7 +10,22 @@ function VertexModel(label, schema = {}) {
     });
   }
 
-// --> Create method
+function findVertex(props){
+
+  let findVertexGremlinString = `g.V()`;
+  const propsObj = Object.assign(props, {});
+
+    for (key in propsObj){
+      findVertexGremlinString += `.has('key', key)`
+    }
+  
+    return client.submit(findVertexGremlinString, props)
+}
+
+/** Create method
+ * @param {Object} schema - an object containing property names as keys; values are the constructor for the type of data contained at this key 
+*/  
+
 VertexModel.prototype.createVertex = function create(schema = {}) {
     let gremlinString = `g.addV('${this.label}')`;
     const propsObject = Object.assign(schema, {});
@@ -31,7 +41,11 @@ const User = new VertexModel('User', {name: String, age: Number});
 const eric = User.create({'eric': 'Eric', 'age' : 30})
 */
 
-// --> Find Vertex By Props method
+/** findVertexByProps method
+ * @param {Object} props - an object containing property names as keys and strings as values. 
+ * The values should correlate to the key/value pairs of a particular node. 
+ * 
+*/  
 VertexModel.prototype.findByProps = function findVertexByProps(props) {
     let findVertexGremlinString = `g.V()`;
     const propsObj = Object.assign(props, {});
@@ -41,12 +55,19 @@ VertexModel.prototype.findByProps = function findVertexByProps(props) {
     return client.submit(findVertexGremlinString, propsObj)
 }
 
-// --> Add Props to Vertex/Vertex Schema method
+
+/** addPropsToVertex method
+ * @param {Object} node - a reference to the original node, 
+ * used to find the corresponding Vertex and add the k/v pairs in PROPS to it.
+ * @param {Object} props - an object containing property names as keys and strings as values. 
+ * The values should correlate to the key/value pairs of a particular node. 
+ * 
+*/  
 VertexModel.prototype.findVAndAddProps = function findVAndAddProps(node, props) {
 
   let gremlinString = findVertexByProps(node);
     //Declare typeof Object to match SCHEMA property values to their type
-  const funcObj = {
+  const typeObj = {
     'string' : String,
     'number' : Number,
     'boolean' : Boolean,
@@ -57,7 +78,7 @@ VertexModel.prototype.findVAndAddProps = function findVAndAddProps(node, props) 
     for (let i = 0; i < propArray.length; i++){
       //if the Schema for that node DOES NOT have that property attached to it, then alter the schema to include that property as well. 
       if (!this[propArray[i][0]]){
-        this[propArray[i][0]] = funcObj[typeof propArray[i][0]];
+        this[propArray[i][0]] = typeObj[typeof propArray[i][0]];
       }
   }
   // Adds a new line to the gremlinString for every prop in props object. 
@@ -71,17 +92,15 @@ console.log(gremlinString);
 }
 
 
-// function findVertexByProps(props) {
-//   let findVertexGremlinString = `g.V()`;
-//   Object.entries(props).forEach(prop => {
-  
-//     findVertexGremlinString += `.has('${prop[0]}', ${prop[1]})`
-//     console.log(typeof prop[1]);
-//   })
-//   return findVertexGremlinString;
-// }
-
 //REFACTORED fVBP method
+
+/** addPropsToVertex method
+ * @param {Object} node - a reference to the original node, 
+ * used to find the corresponding Vertex and add the k/v pairs in PROPS to it.
+ * @param {Object} props - an object containing property names as keys and strings as values. 
+ * The values should correlate to the key/value pairs of a particular node. 
+ * 
+*/ 
 VertexModel.prototype.findVertexByProps = function findVertexByProps(props) {
     let findVertexGremlinString = `g.V()`;
     const propsObj = Object.assign(props, {});
@@ -94,13 +113,15 @@ VertexModel.prototype.findVertexByProps = function findVertexByProps(props) {
     // console.log(findVertexGremlinString)
   }
   
-VertexModel.prototype.dropVertex = function dropVertex(node){
-  let gremlinString = '';
+/** deleteVertex method
+ * @param {Object} node - a reference to the original node, 
+ * used to find the corresponding Vertex and then remove it. 
+*/ 
+VertexModel.prototype.deleteVertex = function deleteVertex(node){
+  let gremlinString = findVertex(node);
 
-  let node = Object.entries(node);
-  node.forEach((subArray) => {
-    gremlinString += ``
-  })
+  return client.submit(`(${gremlinString}).remove()`);
+
 }
 
 /** 
