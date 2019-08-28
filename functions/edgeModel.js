@@ -30,14 +30,13 @@ EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
 
   const qString = `g.V(from).addE('${this.label}').to(g.V(to))`;
 
-
   Object.keys(props).forEach((prop) => {
     qString += `.property('${prop}', ${prop})`
+    if(!this[prop]){
+      this[prop] = typeObj[typeof props[prop]];
+    }
   })
 
-  if(!this[prop]){
-    this[prop] = typeObj[typeof prop];
-  }
   
   return client.submit(qString, {from: fromNode, to: toNode, ...props})
 };
@@ -62,20 +61,24 @@ EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, p
     'undefined' : undefined,
   };
 
-  if(!this[prop]){
-    this[prop] = typeObj[typeof prop];
-  }
+  
 
   if(!(fromNode && toNode)){
     qString += `g.E('${this.label}')`;
     Object.keys(props).forEach((prop) => {
       qString += `.property('${prop}', ${prop})`
+      if(!this[prop]){
+        this[prop] = typeObj[typeof props[prop]];
+      }
     })
   }
   else {
     qString = `g.V(from).outE('${this.label}').as('a').inV(to).select('a')` 
     Object.keys(props).forEach((prop) => {
       qString += `.property('${prop}', ${prop})`
+      if(!this[prop]){
+        this[prop] = typeObj[typeof props[prop]];
+      }
     })
   }
 
