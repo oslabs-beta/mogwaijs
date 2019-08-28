@@ -1,3 +1,5 @@
+const util = require('util');
+
 /**  Vertex Model
  * @param {String} label - the vertex 'type'; required;
  * @param {Object} schema - an object containing property names as keys; values are the constructor for the type of data contained at this key 
@@ -13,12 +15,9 @@ function VertexModel(label, schema = {}) {
 // Helper Function
 function findVertex(props){
 
-  let findVertexGremlinString = `g.V()`;
-  const propsObj = Object.assign({}, props);
-    for (key in propsObj){
-      findVertexGremlinString += `.has('${key}', ${key})`
-    }
-    return client.submit(findVertexGremlinString, props)
+  let qString = `g.V()`;
+  qString += util.hasPropsFromObj(props);
+  return client.submit(qString, props)
 }
 
 /** Create method
@@ -28,12 +27,9 @@ function findVertex(props){
 
 VertexModel.prototype.createVertex = function create(schema = {}) {
   if (typeof schema !== 'object') throw new Error (`Error: Schema must be an object!`)
-    let gremlinString = `g.addV('${this.label}')`;
-    const propsObject = Object.assign({}, schema);
-        for (key in propsObject){
-          gremlinString += `.property('${key}', ${key})`
-        }
-    return client.submit(gremlinString, propsObject)
+    let qString = `g.addV('${this.label}')`;
+    qString += util.addPropsFromObj(props);
+    return client.submit(qString, propsObject)
 }
 
 /** findVertexByProps method
@@ -43,12 +39,9 @@ VertexModel.prototype.createVertex = function create(schema = {}) {
 */  
 VertexModel.prototype.findVertexByProps = function findVertexByProps(props) {
     if (typeof props !== 'object') throw new Error (`Error: Props must be an object!`)
-    let findVertexGremlinString = `g.V('${this.label}')`;
-    const propsObj = Object.assign(props, {});
-        for (key in propsObj){
-            findVertexGremlinString += `.has('${key}', ${key})`
-        }
-    return client.submit(findVertexGremlinString, propsObj)
+    let qString = `g.V('${this.label}')`;
+    qString += util.hasPropsFromObj(props);
+    return client.submit(qString, propsObj)
 }
 
 /** addPropsToVertex method
@@ -60,7 +53,7 @@ VertexModel.prototype.findVertexByProps = function findVertexByProps(props) {
 */  
 VertexModel.prototype.addPropsToVertex = function addPropsToVertex(props) {
   if (typeof props !== 'object') throw new Error (`Error: Props must be an object!`)
-  let gremlinString = findVertexByProps(props);
+  let qString = findVertexByProps(props);
     //Declare typeof Object to match SCHEMA property values to their type
   const typeObj = {
     'string' : String,
@@ -68,21 +61,11 @@ VertexModel.prototype.addPropsToVertex = function addPropsToVertex(props) {
     'boolean' : Boolean,
     'undefined' : undefined,
   };
-      //Assigns a new property to this.schema for every prop passed into the Prop Arg. 
-  let propArray = Object.entries(props);
-    for (let i = 0; i < propArray.length; i++){
-      //if the Schema for that node DOES NOT have that property attached to it, then alter the schema to include that property as well. 
-      let currentPair = propArray[i];
-      if (!this.currentPair[0]){
-        this[currentPair[0]] = typeObj[typeof currentPair[1]];
-      }
-  }
+  // Assigns a new property to this.schema for every prop passed into the Prop Arg. 
   // Adds a new line to the gremlinString for every prop in props object. 
   // The gremlin string will then be filled with the props when returning client.submit? I think? 
-   for (key in props){
-    gremlinString += `.property('${key}', ${props[key]})`
-   }
-  return client.submit(gremlinString, props);
+  qString += util.addPropsFromObj(props);
+  return client.submit(qString, props);
 }
   
 /** deleteVertex method
@@ -92,12 +75,12 @@ VertexModel.prototype.addPropsToVertex = function addPropsToVertex(props) {
 
 VertexModel.prototype.deleteVertex = function deleteVertex(props){
   if (typeof props !== 'object') throw new Error (`Error: Props must be an object!`)
-  let gremlinString = findVertex(props);
-  return client.submit(`(${gremlinString}).remove()`);
+  let qString = findVertex(props);
+  return client.submit(`(${qString}).remove()`);
 }
 
 /** 
- * @param {Object\|String} relprops - A string containing the name of the relationship or an 
+ * @param {Object\|String} relProps - A string containing the name of the relationship or an 
  * object containing a key 'label' containing the name of the relationship and other properties
  * of the relationship
  * @param {Object} [targetProps] - An object containing properties of the target vertices
@@ -118,13 +101,12 @@ VertexModel.prototype.match = function match(relProps = '', targetProps = {}) {
     // if the edge has properties, then we select edges on those properties
     qObj = {...qObj, ...relProps}
     qString += `.outE(label)`
+    
     if (!Object.keys(relProps).includes('label')) throw new Error('Relationship label cannot be undefined');
-    Object.keys(relProps).forEach((key) => {
-      if (key !== 'label') {
-        qString += `.has('${key}', ${key})`;
-      }
-    });
+    
+    qString += util.hasPropsFromObj(relProps, false);
     qString += `.inV().as('target')`;
+    // example:
     // g.V().match(__.as('source).outE(label).has('prop', prop).inV().as('target')
   } else throw new Error('First argument must be string or object');
 
@@ -132,11 +114,8 @@ VertexModel.prototype.match = function match(relProps = '', targetProps = {}) {
   if (Object.keys(targetProps).length > 0) {
     qObj = {...qObj, ...targetProps}
     qString += `, __.as('target')`
-    Object.keys(targetProps).forEach((key) => {
-      if (key !== 'label') {
-        qString += `.has('${key}', ${key})`;
-      }
-    });
+    qString += util.hasPropsFromObj(targetProps, false);
+    // example:
     // ', __.as('target').has('prop', prop)'
   }
   qString += `).select('source', 'target')`;
@@ -147,7 +126,3 @@ VertexModel.prototype.match = function match(relProps = '', targetProps = {}) {
 
 module.exports = VertexModel;
 
-/*
-Notes 
- > change variable names to match MATCH- universal variable names will help with future iterations
-*/

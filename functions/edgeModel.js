@@ -1,3 +1,5 @@
+const util = require('./util.js');
+
 /** Edge Model
  * @param {String} label - "the edge type: required;" 
  * @param {Object} schema - "an object containing property names as keys; values are the constructor for the type of data contained at this key"
@@ -29,15 +31,8 @@ EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
   };
 
   const qString = `g.V(from).addE('${this.label}').to(g.V(to))`;
+  qString += util.addPropsFromObj(props);
 
-  Object.keys(props).forEach((prop) => {
-    qString += `.property('${prop}', ${prop})`
-    if(!this[prop]){
-      this[prop] = typeObj[typeof props[prop]];
-    }
-  })
-
-  
   return client.submit(qString, {from: fromNode, to: toNode, ...props})
 };
 
@@ -61,25 +56,12 @@ EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, p
     'undefined' : undefined,
   };
 
-  
-
   if(!(fromNode && toNode)){
-    qString += `g.E('${this.label}')`;
-    Object.keys(props).forEach((prop) => {
-      qString += `.property('${prop}', ${prop})`
-      if(!this[prop]){
-        this[prop] = typeObj[typeof props[prop]];
-      }
-    })
+    qString = `g.E('${this.label}')` + util.addPropsFromObj(props);
+
   }
   else {
-    qString = `g.V(from).outE('${this.label}').as('a').inV(to).select('a')` 
-    Object.keys(props).forEach((prop) => {
-      qString += `.property('${prop}', ${prop})`
-      if(!this[prop]){
-        this[prop] = typeObj[typeof props[prop]];
-      }
-    })
+    qString = `g.V(from).outE('${this.label}').as('a').inV(to).select('a')` + util.addPropsFromObj(props);
   }
 
 
