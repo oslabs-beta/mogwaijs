@@ -78,6 +78,28 @@ EdgeModel.prototype.findVertex = function findVertex(props){
 
 }
 
+EdgeModel.prototype.delete = async function deleteEdge(fromNode, toNode) {
+  let qString = ''
+  if(!(fromNode && toNode)){ qString = `g.E('${this.label}').drop()`; }
+   else {
+    if (typeof fromNode !== 'object') throw new Error (`Error: fromNode must be a string!`);
+    if (typeof toNode !== 'object') throw new Error (`Error: toNode must be a string!`);
+    let fromV = await this.findVertex(fromNode);
+    let toV = await this.findVertex(toNode);
+      if (fromV.length === 0) return new Promise((resolve, reject)=> {
+        return reject(new Error(`Error: From-vertex not found!`))
+      })
+      fromV = fromV['_items'][0].id;
+      if (toV.length === 0) return new Promise((resolve, reject)=> {
+        return reject(new Error(`Error: To-vertex not found!`))
+      })
+      toV = toV['_items'][0].id;
+      qString += `g.V(from).bothE().where(otherV().is(to)).drop()`
+      return mogwai.client.submit(qString, {from: fromV, to: toV});
+  }
+  return mogwai.client.submit(qString, {});
+}
+
 /** Create method
  * @param {Object} schema - an object containing property names as keys; 
  * values are the constructor for the type of data contained at this key 
@@ -139,6 +161,8 @@ VertexModel.prototype.deleteVertex = async function deleteVertex(props){
   return mogwai.client.submit(`g.V(id).drop()`, {id:vertex});
 }
 
+
+
 /** 
  * @param {Object\|String} relProps - A string containing the name of the relationship or an 
  * object containing a key 'label' containing the name of the relationship and other properties
@@ -148,6 +172,7 @@ VertexModel.prototype.deleteVertex = async function deleteVertex(props){
  *
  */
 
+/*
 VertexModel.prototype.match = function match(relProps = '', targetProps = {}) {
   let qString = `g.V().match(__.as('source')`;
   let qObj = {};
@@ -182,6 +207,30 @@ VertexModel.prototype.match = function match(relProps = '', targetProps = {}) {
 
   return mogwai.client.submit(qString, qObj);
 }
+*/
+
+VertexModel.prototype.match = function match(relProps, targetProps) {
+  
+  let qString = `g.V()`;
+  let qObj = {};
+  if (typeof targetProps !== 'object') return Promise.reject(new Error('Target properties must be an object'))
+  qString += this.hasPropsFromObj(targetProps);
+  qString += `.as("target")`
+  Object.assign(qObj, targetProps)
+  if(typeof relProps === 'string') {
+    qObj.label = relProps
+    qString += '.inE(label)'
+  }
+  else if (typeof relProps === 'object') {
+    if(!relProps.label) return Promise.reject(new Error('Relationship must have label'))
+    qString += this.hasPropsFromObj(relProps);
+  }
+  qString += '.outV().as("source").select("source", "target")'
+  console.log(qString);
+  return mogwai.client.submit(qString, qObj);
+}
+
+// console.log(match('isAttractedTo', {"name": "Chris"}))
 
 VertexModel.prototype.addPropsFromObj = (propsObj, checkModel = true) => {
   let qString = '';
@@ -291,7 +340,6 @@ EdgeModel.prototype.addPropsToEdge = async function addPropsToEdge(fromNode, toN
   let toV = await this.findVertex(toNode);
   if(!(fromNode && toNode)){
     qString = `g.E(id)` + this.addPropsFromObj(props);
-
   }
   else {
     
