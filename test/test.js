@@ -3,10 +3,12 @@ const vertex = require('../functions/vertexModel')
 const EdgeModel = require('../functions/edgeModel')
 const crud = require('../functions/crud')
 
+
 // add instance of promise check to each and every function
 // cannot output a string if it outputs a promise
 // figoure out to how check what output would be at a break point
 // figure out what is returned when a test is completed
+// add test for match function
 
 // VertexModel Tests
 describe('VertexTests', function() {
