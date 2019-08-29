@@ -5,12 +5,12 @@ const crud = require('../functions/crud')
 
 // add instance of promise check to each and every function
 // cannot output a string if it outputs a promise
-// figoure out to how check what output would be at a break point
+// figure out to how check what output would be at a break point
 // figure out what is returned when a test is completed
 
 // VertexModel Tests
 describe('VertexTests', function() {
-  describe('CreateModel', () => {
+  describe('VertexModel', () => {
     it('should generate a gremlin string without modifying the model', function() {
       const modelBeforeRunningFunc = vertex.VertexModel(`test`);
       let copy = Object.assign({}, modelBeforeRunningFunc);
@@ -21,11 +21,19 @@ describe('VertexTests', function() {
       let testModel = vertex.VertexModel('test')
       assert.equal(typeof testModel, "object")
     })
+    it('should return a promise', () => {
+      let exampleCreateModel = vertex.createModel();
+      assert.equal(exampleCreateModel instanceof Promise, true)
+    })
   })
   describe('createVertex', () => {
       it('should return a string', function() {
         let testGremlinSting = vertex.VertexModel.create('test')
         assert.equal(typeof testGremlinSting, "string")
+      })
+      it('should return a promise', () => {
+        let examplecreateVertex = vertex.createVertex();
+        assert.equal(examplecreateVertex instanceof Promise, true)
       })
   })
   describe('findVertexByProps', () => {
@@ -34,15 +42,37 @@ describe('VertexTests', function() {
       assert.equal(exampleFindVertedByProps instanceof Promise, true)
     })
   })
+  describe('addPropsToVertex', () => {
+    it('should return a promise', () => {
+      let exampleAddPropsToVertex = vertex.addPropsToVertex();
+      assert.equal(exampleAddPropsToVertex instanceof Promise, true)
+    })
+  })
+  describe('deleteVertex', () => {
+    it('should return a promise', () => {
+      let exampleDeleteVertex = vertex.deleteVertex();
+      assert.equal(exampleDeleteVertex instanceof Promise, true)
+    })
+  })
+  describe('match', () => {
+    it('should return a promise', () => {
+      let exampleMatch = vertex.match();
+      assert.equal(exampleMatch instanceof Promise, true)
+    })
+  })
 })
 
 // EdgeModel Tests
 
 describe('EdgeModel', function() {
-  describe('create Edge Model', () => {
+  describe('EdgeModel', () => {
     it('should output an object', () => {
       let testModel = EdgeModel.EdgeModel('test')
       assert.equal(typeof testModel, "object")
+    })
+    it('should return a promise', () => {
+      let exampleEdgeModel = vertex.EdgeModel();
+      assert.equal(exampleEdgeModel instanceof Promise, true)
     })
   })
   describe('createEdge', () => {
