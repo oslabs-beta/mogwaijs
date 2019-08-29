@@ -4,4 +4,5 @@
 config.js
 package-lock.json
 
-.keys
+keys/
+keys.js
