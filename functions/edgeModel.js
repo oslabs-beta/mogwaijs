@@ -1,5 +1,3 @@
-const util = require('./util.js');
-
 /** Edge Model
  * @param {String} label - "the edge type: required;" 
  * @param {Object} schema - "an object containing property names as keys; values are the constructor for the type of data contained at this key"
@@ -18,7 +16,7 @@ function EdgeModel(label, schema = {}) {
  * @param {Object} fromNode - the name of the source node in the relationship which points to the target node
  * @param {Object} toNode - the name of the target node in the relationship; this node is pointed to
  * @param {Object} props - an object containing property names as keys; values are the constructor for the type of data contained at this key
- * @return {Object} promise - the object returned from the client.submit method. 
+ * @return {Object} promise - the object returned from the mogwai.client.submit method. 
  */
 
 EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
@@ -31,16 +29,16 @@ EdgeModel.prototype.createEdge = function createEdge(fromNode, toNode, props) {
   };
 
   const qString = `g.V(from).addE('${this.label}').to(g.V(to))`;
-  qString += util.addPropsFromObj(props);
+  qString += EdgeModel.prototype.addPropsFromObj(props);
 
-  return client.submit(qString, {from: fromNode, to: toNode, ...props})
+  return mogwai.client.submit(qString, {from: fromNode, to: toNode, ...props})
 };
 
 /** Add Props To Edge
  * @param {String} fromNode - the name of the source node in the relationship which points to the target node
  * @param {String} toNode - the name of the target node in the relationship; this node is pointed to
  * @param {Object} props - an object containing property names as keys; values are the constructor for the type of data contained at this key 
- * @return {Object} promise - the object returned from the client.submit method. 
+ * @return {Object} promise - the object returned from the mogwai.client.submit method. 
  */
 
 EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, props) {
@@ -57,15 +55,47 @@ EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, p
   };
 
   if(!(fromNode && toNode)){
-    qString = `g.E('${this.label}')` + util.addPropsFromObj(props);
+    qString = `g.E('${this.label}')` + EdgeModel.prototype.addPropsFromObj(props);
 
   }
   else {
-    qString = `g.V(from).outE('${this.label}').as('a').inV(to).select('a')` + util.addPropsFromObj(props);
+    qString = `g.V(from).outE('${this.label}').as('a').inV(to).select('a')` + EdgeModel.prototype.addPropsFromObj(props);
   }
 
 
-  return client.submit(qString, {from: fromNode, to: toNode, ...props})
+  return mogwai.client.submit(qString, {from: fromNode, to: toNode, ...props})
+}
+
+EdgeModel.prototype.addPropsFromObj = (propsObj, checkModel = true) => {
+  let qString = '';
+
+  Object.keys(propsObj).forEach((key) => {
+    if (key !== 'label') {
+      qString += `.property('${key}', ${key})`;
+    } 
+    if (checkModel) {
+      if (!this[key]){
+          this[key] = typeObj[typeof propsObj[key]];
+      }
+    }
+  });
+
+  return qString;
+}
+
+EdgeModel.prototype.hasPropsFromObj = (propsObj, checkModel = true) => {
+  let qString = '';
+  Object.keys(propsObj).forEach((key) => {
+    if (key !== 'label') {
+      qString += `.has('${key}', ${key})`;
+    } 
+    if (checkModel) {
+      if (!this[key]){
+          this[key] = typeObj[typeof propsObj[key]];
+      }
+    }
+    });
+  return qString;
 }
 
 

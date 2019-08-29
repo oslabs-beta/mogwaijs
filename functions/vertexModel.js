@@ -1,5 +1,3 @@
-const util = require('util');
-
 /**  Vertex Model
  * @param {String} label - the vertex 'type'; required;
  * @param {Object} schema - an object containing property names as keys; values are the constructor for the type of data contained at this key 
@@ -16,8 +14,8 @@ function VertexModel(label, schema = {}) {
 function findVertex(props){
 
   let qString = `g.V()`;
-  qString += util.hasPropsFromObj(props);
-  return client.submit(qString, props)
+  qString += this.hasPropsFromObj(props);
+  return mogwai.client.submit(qString, props)
 }
 
 /** Create method
@@ -25,11 +23,11 @@ function findVertex(props){
  * values are the constructor for the type of data contained at this key 
 */  
 
-VertexModel.prototype.createVertex = function create(schema = {}) {
-  if (typeof schema !== 'object') throw new Error (`Error: Schema must be an object!`)
+VertexModel.prototype.createVertex = function create(props = {}) {
+  if (typeof props !== 'object') throw new Error (`Error: Schema must be an object!`)
     let qString = `g.addV('${this.label}')`;
-    qString += util.addPropsFromObj(props);
-    return client.submit(qString, propsObject)
+    qString += this.addPropsFromObj(props);
+    return mogwai.client.submit(qString, props)
 }
 
 /** findVertexByProps method
@@ -40,8 +38,8 @@ VertexModel.prototype.createVertex = function create(schema = {}) {
 VertexModel.prototype.findVertexByProps = function findVertexByProps(props) {
     if (typeof props !== 'object') throw new Error (`Error: Props must be an object!`)
     let qString = `g.V('${this.label}')`;
-    qString += util.hasPropsFromObj(props);
-    return client.submit(qString, propsObj)
+    qString += this.hasPropsFromObj(props);
+    return mogwai.client.submit(qString, props)
 }
 
 /** addPropsToVertex method
@@ -63,9 +61,9 @@ VertexModel.prototype.addPropsToVertex = function addPropsToVertex(props) {
   };
   // Assigns a new property to this.schema for every prop passed into the Prop Arg. 
   // Adds a new line to the gremlinString for every prop in props object. 
-  // The gremlin string will then be filled with the props when returning client.submit? I think? 
-  qString += util.addPropsFromObj(props);
-  return client.submit(qString, props);
+  // The gremlin string will then be filled with the props when returning mogwai.client.submit? I think? 
+  qString += this.addPropsFromObj(props);
+  return mogwai.client.submit(qString, props);
 }
   
 /** deleteVertex method
@@ -76,7 +74,7 @@ VertexModel.prototype.addPropsToVertex = function addPropsToVertex(props) {
 VertexModel.prototype.deleteVertex = function deleteVertex(props){
   if (typeof props !== 'object') throw new Error (`Error: Props must be an object!`)
   let qString = findVertex(props);
-  return client.submit(`(${qString}).remove()`);
+  return mogwai.client.submit(`(${qString}).remove()`);
 }
 
 /** 
@@ -104,7 +102,7 @@ VertexModel.prototype.match = function match(relProps = '', targetProps = {}) {
     
     if (!Object.keys(relProps).includes('label')) throw new Error('Relationship label cannot be undefined');
     
-    qString += util.hasPropsFromObj(relProps, false);
+    qString += this.hasPropsFromObj(relProps, false);
     qString += `.inV().as('target')`;
     // example:
     // g.V().match(__.as('source).outE(label).has('prop', prop).inV().as('target')
@@ -114,13 +112,60 @@ VertexModel.prototype.match = function match(relProps = '', targetProps = {}) {
   if (Object.keys(targetProps).length > 0) {
     qObj = {...qObj, ...targetProps}
     qString += `, __.as('target')`
-    qString += util.hasPropsFromObj(targetProps, false);
+    qString += this.hasPropsFromObj(targetProps, false);
     // example:
     // ', __.as('target').has('prop', prop)'
   }
   qString += `).select('source', 'target')`;
 
-  return client.submit(qString, qObj);
+  return mogwai.client.submit(qString, qObj);
+}
+
+VertexModel.prototype.addPropsFromObj = (propsObj, checkModel = true) => {
+  let qString = '';
+
+  const typeObj = {
+    'string' : String,
+    'number' : Number,
+    'boolean' : Boolean,
+    'undefined' : undefined,
+  };
+
+  Object.keys(propsObj).forEach((key) => {
+    if (key !== 'label') {
+      qString += `.property('${key}', ${key})`;
+    } 
+    if (checkModel) {
+      if (!this[key]){
+          this[key] = typeObj[typeof propsObj[key]];
+      }
+    }
+  });
+
+  return qString;
+}
+
+VertexModel.prototype.hasPropsFromObj = (propsObj, checkModel = true) => {
+  let qString = '';
+
+  const typeObj = {
+    'string' : String,
+    'number' : Number,
+    'boolean' : Boolean,
+    'undefined' : undefined,
+  };
+  
+  Object.keys(propsObj).forEach((key) => {
+    if (key !== 'label') {
+      qString += `.has('${key}', ${key})`;
+    } 
+    if (checkModel) {
+      if (!this[key]){
+          this[key] = typeObj[typeof propsObj[key]];
+      }
+    }
+    });
+  return qString;
 }
 
 
