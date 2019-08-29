@@ -60,6 +60,7 @@ function localConnect(username, password, uri){
  * @param {String} label - the vertex 'type'; required;
  * @param {Object} schema - an object containing property names as keys; values are the constructor for the type of data contained at this key 
 */
+
 function VertexModel(label, schema = {}) {
   if (!label || typeof label !== 'string') throw new Error (`Error: Label must be a string!`)
     this.label = label;
@@ -96,7 +97,7 @@ VertexModel.prototype.createVertex = function create(props = {}) {
 */  
 VertexModel.prototype.findVertexByProps = function findVertexByProps(props) {
     if (typeof props !== 'object') throw new Error (`Error: Props must be an object!`)
-    let qString = `g.V('${this.label}')`;
+    let qString = `g.V()`;
     qString += this.hasPropsFromObj(props);
     return mogwai.client.submit(qString, props)
 }
@@ -108,21 +109,18 @@ VertexModel.prototype.findVertexByProps = function findVertexByProps(props) {
  * The values should correlate to the key/value pairs of a particular node. 
  * 
 */  
-VertexModel.prototype.addPropsToVertex = function addPropsToVertex(props) {
-  if (typeof props !== 'object') throw new Error (`Error: Props must be an object!`)
-  let qString = findVertexByProps(props);
-    //Declare typeof Object to match SCHEMA property values to their type
-  const typeObj = {
-    'string' : String,
-    'number' : Number,
-    'boolean' : Boolean,
-    'undefined' : undefined,
-  };
-  // Assigns a new property to this.schema for every prop passed into the Prop Arg. 
-  // Adds a new line to the gremlinString for every prop in props object. 
-  // The gremlin string will then be filled with the props when returning mogwai.client.submit? I think? 
-  qString += this.addPropsFromObj(props);
-  return mogwai.client.submit(qString, props);
+VertexModel.prototype.addPropsToVertex = async function addPropsToVertex(findProps, addProps) {
+  if (typeof findProps !== 'object') throw new Error (`Error: findProps must be an object!`)
+  if (typeof addProps !== 'object') throw new Error (`Error: addProps must be an object!`)
+  let vertex = await this.findVertexByProps(findProps);
+  if (vertex.length === 0) return new Promise((resolve, reject)=>{
+    return reject(new Error(`Error: vertex not found!`))
+  })
+
+  vertex = vertex['_items'][0].id;
+  let qString = `g.V(id)`;
+  qString += this.addPropsFromObj(addProps);
+  return mogwai.client.submit(qString, {...addProps, id: vertex});
 }
   
 /** deleteVertex method
@@ -130,10 +128,15 @@ VertexModel.prototype.addPropsToVertex = function addPropsToVertex(props) {
  * used to find the corresponding Vertex and then remove it. 
 */ 
 
-VertexModel.prototype.deleteVertex = function deleteVertex(props){
+VertexModel.prototype.deleteVertex = async function deleteVertex(props){
   if (typeof props !== 'object') throw new Error (`Error: Props must be an object!`)
-  let qString = findVertex(props);
-  return mogwai.client.submit(`(${qString}).remove()`);
+  let vertex = await this.findVertexByProps(props);
+  if (vertex.length === 0) return new Promise((resolve, reject)=>{
+    return reject(new Error(`Error: vertex not found!`))
+  })
+  vertex = vertex['_items'][0].id;
+
+  return mogwai.client.submit(`g.V(id).drop()`, {id:vertex});
 }
 
 /** 
@@ -278,23 +281,43 @@ EdgeModel.prototype.createEdge = async function createEdge(fromNode, toNode, pro
  * @return {Object} promise - the object returned from the client.submit method. 
  */
 
-EdgeModel.prototype.addPropsToEdge = function addPropsToEdge(fromNode, toNode, props) {
-  if (typeof fromNode !== 'string') throw new Error (`Error: fromNode must be a string!`);
-  if (typeof toNode !== 'string') throw new Error (`Error: toNode must be a string!`);
+EdgeModel.prototype.addPropsToEdge = async function addPropsToEdge(fromNode, toNode, props) {
+  if (typeof fromNode !== 'object') throw new Error (`Error: fromNode must be a string!`);
+  if (typeof toNode !== 'object') throw new Error (`Error: toNode must be a string!`);
   if (typeof props !== 'object') throw new Error (`Error: props must be an object!`);
 
   let qString = ``;
-
+  let fromV = await this.findVertex(fromNode);
+  let toV = await this.findVertex(toNode);
   if(!(fromNode && toNode)){
-    qString = `g.E('${this.label}')` + this.addPropsFromObj(props);
+    qString = `g.E(id)` + this.addPropsFromObj(props);
 
   }
   else {
-    qString = `g.V(from).outE('${this.label}').as('a').inV(to).select('a')` + this.addPropsFromObj(props);
+    
+    // console.log(JSON.stringify(fromV));
+    // console.log(fromV['_items'][0].id);
+    if (fromV.length === 0) return new Promise((resolve, reject)=>{
+      return reject(new Error(`Error: From-vertex not found!`))
+    })
+    fromV = fromV['_items'][0].id;
+    // console.log(typeof fromV)
+    
+    if (toV.length === 0) return new Promise((resolve, reject)=>{
+      return reject(new Error(`Error: To-vertex not found!`))
+    })
+    // console.log(toV);
+    toV = toV['_items'][0].id;
+    // console.log(typeof toV)
+    qString += `g.V(from).outE('${this.label}').as('a').inV().has('id', to).select('a')` + this.addPropsFromObj(props);
   }
 
-
-  return mogwai.client.submit(qString, {from: fromNode, to: toNode, ...props})
+  // console.log(qString);
+  /*
+g.V(vertex.id()).outE("votes_for").has("type", "eat").as("e").inV().has("name", "pizza").select("e").property("weight", 0.99d)
+g.V(from).outE('is_attracted_to').as('a').inV(to).select('a').property('bothMen', bothMen)  
+*/
+  return mogwai.client.submit(qString, {from: fromV, to: toV, ...props})
 }
 
 EdgeModel.prototype.addPropsFromObj = (propsObj, checkModel = true) => {
