@@ -2,7 +2,7 @@
   "name": "mogwaijs",
   "version": "0.0.1",
   "description": "A declarative OGM wrapper for Gremlin traversal language.",
-  "main": "mogwai.js",
+  "main": "index.js",
   "dependencies": {
     "async": "^2.6.0",
     "gremlin": "^3.3.4",
@@ -18,5 +18,10 @@
     "javascript"
   ],
   "author": "mogwaijs",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oslabs-beta/mogwaijs.git"
+  },
+  "contributors": ["EricStallings", "ndominguez23", "houta483", "Tburrington"]
 }

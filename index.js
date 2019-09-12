@@ -406,4 +406,8 @@ EdgeModel.prototype.hasPropsFromObj = (propsObj, checkModel = true) => {
 
   return qString;
 }
+
 module.exports = mogwai;
+module.exports.loadMsg = () => {
+  console.log('Welcome to MogwaiJS alpha!');
+}
