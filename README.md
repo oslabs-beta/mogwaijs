@@ -1,2 +1,2 @@
 # Mogwai.js
-Cypher to Gremlin for graph databases in JavaScript
+An intuitive OGM wrapper for the Gremlin graph traversal language.
