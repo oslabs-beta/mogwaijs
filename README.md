@@ -10,11 +10,11 @@ npm i mogwaijs
 ## Set up a Gremlin client & import Vertex and Edge models
 ```
 const mogwai, { Vertex, Edge } = require('mogwaijs');
-const client = mogwai.remoteConnect(DB_NAME, COLLECTION_NAME, PRIMARY_KEY, DB_ENDPOINT);
+mogwai.remoteConnect(DB_NAME, COLLECTION_NAME, PRIMARY_KEY, DB_ENDPOINT);
 ```
 or
 ```
-const client = mogwai.localConnect(USERNAME, PASSWORD, ENDPOINT);
+mogwai.localConnect(USERNAME, PASSWORD, ENDPOINT);
 ```
 
 ## Create a vertex/edge model
