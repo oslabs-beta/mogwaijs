@@ -1,5 +1,5 @@
 # Mogwai.js
-Ang OGM for the Gremlin traversal language
+An OGM for the Gremlin traversal language
 
 ## Getting Started
 Install MogwaiJS as an npm package
