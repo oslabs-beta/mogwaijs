@@ -32,17 +32,17 @@ const IsFriendsWith = new Edge('isFriendsWith', {
 
 ## Adding vertices and edges
 ```
-User.addVertex({
+User.createVertex({
   name: 'Sam',
   age: 22,
 });
 
-User.addVertex({
+User.createVertex({
   name: 'Cassandra',
   age: 24,
 });
 
-isFriendsWith.addEdge(
+isFriendsWith.createEdge(
   {name: 'Cassandra'},
   {name: 'Sam'},
   {since: 2018}
