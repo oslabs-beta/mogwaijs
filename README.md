@@ -1,5 +1,5 @@
 # Mogwai.js
-Cypher to Gremlin for graph databases in JavaScript
+Ang OGM for the Gremlin traversal language
 
 ## Getting Started
 Install MogwaiJS as an npm package
