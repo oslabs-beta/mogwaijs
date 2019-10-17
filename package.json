@@ -1,8 +1,8 @@
 {
-  "name": "azure-cosmosdb-documentdb-nodejs-getting-started",
-  "version": "0.0.0",
-  "description": "A short sample app to demonstrate how to get started with Azure Cosmos DB's DocumentDB API",
-  "main": "app.js",
+  "name": "mogwaijs",
+  "version": "0.0.1",
+  "description": "A declarative OGM wrapper for Gremlin traversal language.",
+  "main": "index.js",
   "dependencies": {
     "async": "^2.6.0",
     "gremlin": "^3.3.4",
@@ -10,5 +10,18 @@
   },
   "scripts": {
     "test": "mocha"
-  }
+  },
+  "keywords": [
+    "graph",
+    "database",
+    "gremlin",
+    "javascript"
+  ],
+  "author": "mogwaijs",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oslabs-beta/mogwaijs.git"
+  },
+  "contributors": ["EricStallings", "ndominguez23", "houta483", "Tburrington"]
 }
